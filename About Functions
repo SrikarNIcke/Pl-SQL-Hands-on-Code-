@@ -1,0 +1,5 @@
+There are mostly three functions 
+
+1 -> Total_Leaves() function — Calculates the Total of the leaves employee by taking employee_id as argument and returns total number of leaves kept by the employee.
+2 -> Salary_hrs() function  — Calculates and returns the employee Gross and Net salaries per hour with including the leaves.
+3 -> Salary_month() function — Calculates and returns the employee Gross and Net salaries per month with including the leaves.
