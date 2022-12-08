@@ -1,0 +1,13 @@
+### Cursor
+
+1 → I have created a cursor in a function called Pay() to calculate the salaries of the employees and to insert in a Payroll Table.
+
+2 → The cursor collects the each employee_id and employee_type data into cursor.
+
+3 → After the cursor opened it will fetch details  of employee_id,account_no,account_id,bank_name,gross_salary,net_salary into local variables from 
+
+  accountdetails table 
+
+4 → Later the function will calculate’s  and teturns the Gross and Net Salarie’s details according to the employee’s working type(hourly pay or CTC pay).
+
+5 → Later the the details will inserted into the Payroll Table
