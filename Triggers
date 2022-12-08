@@ -1,0 +1,22 @@
+Triggers
+Trigger’s are created on payroll table to audit the payroll table.
+Trigger is fired when any insert or update or delete is performed on payroll table.
+
+Trigger function
+Create or replace function Payroll_trigger()
+returns trigger 
+language plpgsql
+as $$
+begin 
+	insert into audit_payroll(old.employee_id, timestamp) values(new.employee_id,now());
+	return old;
+end;
+$$;
+
+Binding Trigger with Payroll_trigger function
+CREATE or replace TRIGGER employee_trigger
+  AFTER insert or update or delete
+  ON "payroll" FOR EACH ROW
+  EXECUTE PROCEDURE Payroll_trigger();
+  
+  
