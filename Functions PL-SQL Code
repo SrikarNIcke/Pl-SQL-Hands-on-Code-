@@ -1,0 +1,108 @@
+create or replace function Pay()
+returns void
+as $$
+	declare 
+		v_account_no accountdetails.account_no%type;
+		v_account_id accountdetails.account_id%type;
+		v_bank_name accountdetails.bank_name%type;
+		salary numeric(7,2)[1];		
+		emp_id employee.employee_id%type;
+		emp_type employee.working_type%type;
+		emp_cur cursor for select employee_id, working_type from employee;
+	begin
+		
+		open emp_cur;
+		
+	loop
+			
+			fetch emp_cur into emp_id,emp_type;
+		
+			select account_no,account_id,bank_name into v_account_no,v_account_id,v_bank_name
+			from accountdetails where employee_id = emp_id;
+			
+			if emp_type='H' THEN
+				salary := salary_hrs(emp_id);
+			
+			elsif emp_type='P' THEN
+				salary := salary_month(emp_id);
+			
+			
+			END IF;
+			exit when not found;
+		insert into payroll(employee_id,account_no,account_id,bank_name,gross_salary,net_salary)
+		values(emp_id,v_account_no,v_account_id,v_bank_name,salary[0],salary[1]);
+
+		raise notice'% -> Gross:% Net:%',emp_id,salary[0],salary[1];
+		
+	
+	end loop;
+			close emp_cur;
+	end;
+$$ language plpgsql;
+select Pay();
+
+******    Total Leaves function   *******
+
+create or replace function total_leaves(emp_id int)
+returns int
+as $$
+declare 
+	total int:=0;
+begin
+	select count(emp_id) into total from leaves where employee_id = emp_id;
+	if total > 0 then 
+		return total;
+	else return 0;
+	end if;
+end;
+$$ language plpgsql;
+
+
+******    Salary Per Hour function   *******
+
+create or replace function Salary_hrs(emp_id int)
+returns numeric[]
+as $$
+declare 
+	leaves int :=total_leaves(emp_id);
+	per_hr salary.pay%type;
+	total_tax salary.federal_tax%type;
+	salary numeric(7,2)[1];
+begin
+	--Assigning Values
+	select pay into per_hr from salary;
+	select (federal_tax+state_tax) into total_tax from Salary;
+
+	--Calculating Gross and Net Salaries
+	salary[0]:=((per_hr*6)*(30-leaves));
+	salary[1]:=salary[0]-(total_tax);
+
+	-- Returns Gross and Net Salaries
+	return salary;
+end;
+$$ language plpgsql;
+
+******    Salary Month Hour function   *******
+
+create or replace function Salary_month(emp_id int)
+returns numeric[]
+as $$
+declare 
+	leaves int :=total_leaves(emp_id);
+	per_yr salary.pay%type;
+	total_tax numeric(7,2);
+	Salary numeric(7,2)[1];
+begin
+	--Assigning Values
+	select (pay) into per_yr from Salary where employee_id=emp_id ;
+	select (federal_tax+state_tax) into total_tax from Salary;
+	
+
+	--Calculating Gross and Net Salaries
+	Salary[0]:=((per_yr/12) - ((per_yr/365)*leaves));
+	Salary[1]:=(Salary[0]-total_tax);
+
+	-- Returns Gross and Net Salaries
+	return Salary;
+end;
+$$ language plpgsql;
